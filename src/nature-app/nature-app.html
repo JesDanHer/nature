@@ -1,5 +1,9 @@
 <link rel="import" href="../../bower_components/polymer/polymer-element.html">
 <link rel="import" href="../../bower_components/iron-pages/iron-pages.html" />
+<link rel="import" href="../../bower_components/iron-form/iron-form.html" />
+<link rel="import" href="../../bower_components/paper-dropdown-menu/paper-dropdown-menu.html" />
+<link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html" />
+<link rel="import" href="../../bower_components/paper-item/paper-item.html" />
 <link rel="import" href="../../bower_components/login-element/login-element.html" />
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html" />
 
@@ -54,11 +58,34 @@
         </div>
 
         <div data-route="massagePoint">
-            <p>MassageP Point</p>
+            
+            <p>Massage Point</p>
+
+            <iron-form>
+              
+              <paper-input type="text" name="name" label="Nombre" value="Clienta" required></paper-input>
+              <paper-input type="text" name="contact" label="Contacto" value="E-mail" required></paper-input>
+
+              <paper-dropdown-menu label="Selecciona tu nombre" vertical-align="bottom" horizontal-align="left">
+
+                <paper-listbox slot="dropdown-content" class="dropdown-content">
+                  <paper-item>Masajista 1</paper-item>
+                  <br>
+                  <paper-item>Masajista 2</paper-item>
+                  <br>
+                  <paper-item>Masajista 3</paper-item>
+                  <br>
+                  <paper-item>Masajista 4</paper-item>
+                </paper-listbox>
+
+              </paper-dropdown-menu>
+
+            </iron-form>
+
         </div>
 
-        <iron-ajax id="iaIdAjaxRequest" url="[[urlReq]]" method="[[methodReq]]"
-            handle-as="json" content-type="application/json" on-response="genericResponse">
+        <iron-ajax id="iaIdAjaxRequest" url="[[urlReq]]" method="[[methodReq]]" handle-as="json"
+            content-type="application/json" body="[[bodyReq]]" on-response="genericResponse">
         </iron-ajax>
 
     </iron-pages>
@@ -99,12 +126,7 @@
               bodyReq : {
                 type : String,
                 value : ''
-              },
-              responseReq : {
-                type : String,
-                value : ''
               }
-
           };
 
       }
@@ -113,7 +135,10 @@
         debugger;
         var dataResp = validateErrorResponse(resp.detail.response);
         if (validateNotEmpty(dataResp)) {
-
+          console.log(dataResp);
+          if (this.urlReq.indexOf("/validateUser" > 0)) {
+            this.view = dataResp.view;
+          }
         }
       }
 
@@ -121,9 +146,8 @@
         //console.log("valida usuario . . . . .");
         this.urlReq = this.urlPath  + "validateUser";
         this.methodReq = "post";
-        this.responseReq = "valUsrResponse";
-
-        this.$.iaIdAjaxRequest.body = {alias : this.$.userID.value, clave : this.$.userPass.value};
+        this.bodyReq = {alias : this.$.userID.value, clave : this.$.userPass.value};
+        
         this.$.iaIdAjaxRequest.generateRequest();
       }
     }
@@ -155,6 +179,10 @@
 
         alert('Respuesta no recivida. Intente más tarde');
       }
+    }
+
+    function getDataMassagePoint() {
+
     }
 
   </script>

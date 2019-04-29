@@ -30,7 +30,8 @@ client.connect(err => {
     //client.close();
 });
 
-app.use(bodyParser.urlencoded({extended:true}));
+//app.use(bodyParser.urlencoded({extended:true}));
+app.use(bodyParser.json());
 
 app.get('/', function(req, resp){
     //resp.send('this is a GET');
