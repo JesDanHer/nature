@@ -1,0 +1,161 @@
+<link rel="import" href="../../bower_components/polymer/polymer-element.html">
+<link rel="import" href="../../bower_components/iron-pages/iron-pages.html" />
+<link rel="import" href="../../bower_components/login-element/login-element.html" />
+<link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html" />
+
+<dom-module id="nature-app">
+
+  <template>
+
+    <style>
+    
+      :host {
+        display: block;
+
+        padding: 10px 20px;
+      }
+
+      h2 {
+          text-align : center;
+      }
+
+    </style>
+
+    <h2>[[title]]</h2>
+
+    <iron-pages attr-for-selected="data-route" selected="[[view]]">
+            
+        <div data-route="login">
+
+            <paper-input id="userID"
+              type="user"
+              value="{{userID}}"
+              placeholder="Ingresa tu usuario"
+              error-message="[[localize('invalid-user')]]"
+              on-keydown="_submitOnEnter"
+              required>
+            </paper-input>
+
+            <paper-input id="userPass"
+              type="userPass"
+              value="{{userPass}}"
+              placeholder="Ingresa tu contraseña"
+              error-message="[[localize('invalid-pass')]]"
+              on-keydown="_submitOnEnter"
+              required>
+            </paper-input>
+            
+            <paper-button toggles raised on-tap="validateUser">Ingresar</paper-button>
+
+        </div>
+
+        <div data-route="salePoint">
+            <p>Sale Point</p>
+        </div>
+
+        <div data-route="massagePoint">
+            <p>MassageP Point</p>
+        </div>
+
+        <iron-ajax id="iaIdAjaxRequest" url="[[urlReq]]" method="[[methodReq]]"
+            handle-as="json" content-type="application/json" on-response="genericResponse">
+        </iron-ajax>
+
+    </iron-pages>
+
+  </template>
+
+  <script>
+    /**
+     * @customElement
+     * @polymer
+     */
+    class NatureApp extends Polymer.Element {
+
+      static get is() { return 'nature-app'; }
+
+      static get properties() {
+          return {
+              title: {
+                  type: String,
+                  value: 'Nature Bisse'
+              },
+              view : {
+                  type : String,
+                  value : 'login'
+              },
+              urlPath : {
+                  type : String,
+                  value : 'http://127.0.0.1:3000/'
+              },
+              urlReq : {
+                type : String,
+                value : ''
+              },
+              methodReq : {
+                type : String,
+                value : ''
+              },
+              bodyReq : {
+                type : String,
+                value : ''
+              },
+              responseReq : {
+                type : String,
+                value : ''
+              }
+
+          };
+
+      }
+
+      genericResponse(resp) {
+        debugger;
+        var dataResp = validateErrorResponse(resp.detail.response);
+        if (validateNotEmpty(dataResp)) {
+
+        }
+      }
+
+      validateUser() {
+        //console.log("valida usuario . . . . .");
+        this.urlReq = this.urlPath  + "validateUser";
+        this.methodReq = "post";
+        this.responseReq = "valUsrResponse";
+
+        this.$.iaIdAjaxRequest.body = {alias : this.$.userID.value, clave : this.$.userPass.value};
+        this.$.iaIdAjaxRequest.generateRequest();
+      }
+    }
+
+    window.customElements.define(NatureApp.is, NatureApp);
+
+    function validateNotEmpty(data) {
+      return (data !== undefined && data !== null && data !== "");
+    }
+
+    function validateErrorResponse(data) {
+
+      if (validateNotEmpty(data)) {
+
+        if (validateNotEmpty(data.error)) {
+
+          alert(data.error);
+
+        } else if (validateNotEmpty(data.success)) {
+          
+          return data.success;
+
+        } else {
+
+          alert('Respuesta no recivida. Intente más tarde');
+        }
+
+      } else {
+
+        alert('Respuesta no recivida. Intente más tarde');
+      }
+    }
+
+  </script>
+</dom-module>

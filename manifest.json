@@ -1,0 +1,6 @@
+{
+  "name": "nature",
+  "short_name": "nature",
+  "start_url": "/",
+  "display": "standalone"
+}

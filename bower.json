@@ -1,0 +1,14 @@
+{
+  "name": "nature",
+  "main": "index.html",
+  "dependencies": {
+    "polymer": "Polymer/polymer#^2.0.0",
+    "login-element": "https://github.com/Copelia/login-centro.git",
+    "iron-pages": "https://github.com/PolymerElements/iron-pages.git#2.1.1",
+    "iron-ajax": "https://github.com/PolymerElements/iron-ajax.git#2.1.3"
+  },
+  "devDependencies": {
+    "web-component-tester": "Polymer/web-component-tester#^6.0.0",
+    "webcomponentsjs": "webcomponents/webcomponentsjs#^1.0.0"
+  }
+}
