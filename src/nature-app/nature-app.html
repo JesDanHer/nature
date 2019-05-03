@@ -5,6 +5,8 @@
 <link rel="import" href="../../bower_components/paper-listbox/paper-listbox.html" />
 <link rel="import" href="../../bower_components/paper-item/paper-item.html" />
 <link rel="import" href="../../bower_components/login-element/login-element.html" />
+<link rel="import" href="../../bower_components/polymer/lib/elements/dom-repeat.html" />
+<link rel="import" href="../../bower_components/my-first-comp/my-first-comp.html" />
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html" />
 
 <dom-module id="nature-app">
@@ -32,8 +34,7 @@
         <div data-route="login">
 
             <paper-input id="userID"
-              type="user"
-              value="{{userID}}"
+              value=""
               placeholder="Ingresa tu usuario"
               error-message="[[localize('invalid-user')]]"
               on-keydown="_submitOnEnter"
@@ -41,8 +42,7 @@
             </paper-input>
 
             <paper-input id="userPass"
-              type="userPass"
-              value="{{userPass}}"
+              value=""
               placeholder="Ingresa tu contraseña"
               error-message="[[localize('invalid-pass')]]"
               on-keydown="_submitOnEnter"
@@ -59,7 +59,7 @@
 
         <div data-route="massagePoint">
             
-            <p>Massage Point</p>
+            <p>[[titMassage]]</p>
 
             <iron-form>
               
@@ -69,16 +69,28 @@
               <paper-dropdown-menu label="Selecciona tu nombre" vertical-align="bottom" horizontal-align="left">
 
                 <paper-listbox slot="dropdown-content" class="dropdown-content">
-                  <paper-item>Masajista 1</paper-item>
-                  <br>
-                  <paper-item>Masajista 2</paper-item>
-                  <br>
-                  <paper-item>Masajista 3</paper-item>
-                  <br>
-                  <paper-item>Masajista 4</paper-item>
+                  <!-- dom-repeat-->
+                    <!-- dom-if (valida id del usuario que realizo login y dejarlo predeterminado)-->
+                  <dom-repeat items="{{therapists}}">
+                    <template>
+                      <paper-item data-id="{{item.id}}">{{item.name}}</paper-item>
+                    </template>
+                  </dom-repeat>
                 </paper-listbox>
 
               </paper-dropdown-menu>
+
+              <div class="vertical-section-container centered">
+                  <my-first-comp column-list={{productHeaders}} products-list={{creamProducts}}
+                      week-list={{weekList}}>
+                  </my-first-comp>
+              </div>
+
+            <!-- tabla con las cremas -->
+              <div class="button-container">
+                <paper-button raised class="indigo">ENVIAR</paper-button>
+                <paper-button raised class="green">IMPRIMIR</paper-button>
+              </div>
 
             </iron-form>
 
@@ -126,18 +138,63 @@
               bodyReq : {
                 type : String,
                 value : ''
+              },titMassage : {
+                type : String,
+                value : ''
+              },therapists : {
+                type : Array,
+                value : new Array()
+              },productHeaders : {
+                type : Array,
+                value : [
+                  {"colName": "Selecciona", "tipo": "td", "type": "Boolean"},
+                  {"colName": "Tipo", "tipo": "td", "type": "Boolean"},
+                  {"colName": "Nombre", "tipo": "td", "type": "Boolean"}]
+              }, weekList : {
+                  type : Array,
+                  value : [
+                    {"day": "Lun/Mon"},
+                    {"day": "Mar/Tue"},
+                    {"day": "Mie/Wen"},
+                    {"day": "Jue/Thu"},
+                    {"day": "Vie/Fri"},
+                    {"day": "Sab/Sat"},
+                    {"day": "Dom/Sun"}]
+              },creamProducts : {
+                type : Array,
+                value : new Array()
               }
           };
 
       }
 
       genericResponse(resp) {
-        debugger;
+        
         var dataResp = validateErrorResponse(resp.detail.response);
         if (validateNotEmpty(dataResp)) {
           console.log(dataResp);
-          if (this.urlReq.indexOf("/validateUser" > 0)) {
+          if (dataResp.sesionId !== undefined && dataResp.sesionId !== null &&
+              dataResp.sesionId !== "") {
+            
             this.view = dataResp.view;
+            this.getMassagePoint(dataResp.sesionId);
+            this.getTherapists(dataResp.sesionId);
+            this.getCreams();
+
+          } else if (dataResp.pointName !== undefined && dataResp.pointName !== null &&
+              dataResp.pointName !== ""){
+
+            this.titMassage = dataResp.pointName;
+            
+          } else if (dataResp.therapists !== undefined && dataResp.therapists !== null &&
+              dataResp.therapists !== "" && dataResp.therapists.length > 0) {
+            
+            this.therapists = dataResp.therapists;
+
+          } else if (dataResp.creams !== undefined && dataResp.creams !== null &&
+              dataResp.creams !== "" && dataResp.creams.length > 0) {
+            
+                this.creamProducts = dataResp.creams;
           }
         }
       }
@@ -149,7 +206,41 @@
         this.bodyReq = {alias : this.$.userID.value, clave : this.$.userPass.value};
         
         this.$.iaIdAjaxRequest.generateRequest();
+
       }
+      
+      getMassagePoint(param) {
+        
+        if (param !== undefined && param !== null && param !== "") {
+
+          this.urlReq = this.urlPath  + "massagePoint";
+          this.methodReq = "post";
+          this.bodyReq = {session : param};
+          
+          this.$.iaIdAjaxRequest.generateRequest();
+        }
+      }
+
+      getTherapists(param) {
+        
+        if (param !== undefined && param !== null && param !== "") {
+
+          this.urlReq = this.urlPath  + "therapists";
+          this.methodReq = "post";
+          this.bodyReq = {session : param};
+          
+          this.$.iaIdAjaxRequest.generateRequest();
+        }
+      }
+
+      getCreams() {
+
+        this.urlReq = this.urlPath  + "creams";
+        this.methodReq = "get";
+        
+        this.$.iaIdAjaxRequest.generateRequest();
+      }
+
     }
 
     window.customElements.define(NatureApp.is, NatureApp);
@@ -179,10 +270,6 @@
 
         alert('Respuesta no recivida. Intente más tarde');
       }
-    }
-
-    function getDataMassagePoint() {
-
     }
 
   </script>
