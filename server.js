@@ -63,19 +63,22 @@ app.post('/validateUser', function(req, resp){
             if (docs.length == 1) {
 
                 var sViewName = "";
+                var sIdPoint = "";
 
                 if (docs[0].id_salePoint !== "0") {
 
                     sViewName = "salePoint";
+                    sIdPoint = docs[0].id_salePoint;
 
                 } else if (docs[0].id_massagePoint !== "0") {
 
                     sViewName = "massagePoint"
+                    sIdPoint = docs[0].id_massagePoint;
                 }
 
                 sResponseUsr = {
                     success : {
-                        sesionId : docs[0].id + "|" + docs[0].id_massagePoint + "|8912hdn|p28647|901218b",
+                        sesionId : docs[0].id + "|" + sIdPoint + "|8912hdn|p28647|901218b",
                         view : sViewName
                     }
                 };
@@ -260,6 +263,7 @@ app.get('/creams', function(req, resp){
                                     if (creamTypes[iRecTypes].id === cream.id_creamType) {
 
                                         foundType = true;
+                                        creamTmp.week = creamTypes[iRecTypes].daysWeek === "1" ? true : false;
                                         creamTmp.tipo = creamTypes[iRecTypes].name;
 
                                     } else {
@@ -297,4 +301,237 @@ app.get('/creams', function(req, resp){
             }
         }
     });
+});
+
+app.post('/salePoint', function(req, resp){
+    //debugger;
+    var sResponse = null;
+
+    if (req.body.session !== undefined && req.body.session !== null &&
+            req.body.session !== "") {
+
+        var aData = req.body.session.split('|');
+
+        db.collection("SalePoint").find({id : aData[1]}).toArray((error, docs) => {
+
+            if (error) {
+                console.log(error);
+                sResponse = {
+                    error : error.message
+                };
+
+            } else {
+                //debugger;
+                if (docs.length == 1) {
+
+                    sResponse = {
+                        success : {
+                            saleName : docs[0].name,
+                            saleLocation : docs[0].location
+                        }
+                    };
+
+                } else {
+
+                    sResponse = {
+                        error : "Existen dos o mas puntos de venta."
+                    };
+                }
+            }     
+
+            resp.send(sResponse);   
+        });
+
+    } else {
+        
+        sResponse = {
+            error : "Peticion incompleta, intente nuevamente."
+        };
+        
+        resp.send(sResponse);  
+    }
+});
+
+app.post('/sellers', function(req, resp){
+    //debugger;
+    var sResponseUsr = null;
+
+    if (req.body.session !== undefined && req.body.session !== null &&
+            req.body.session !== "") {
+
+        var aData = req.body.session.split('|');
+
+        db.collection("Usrs").find({id_salePoint : aData[1]}).toArray((error, docs) => {
+
+            if (error) {
+                console.log(error);
+                sResponseUsr = {
+                    error : error.message
+                };
+
+            } else {
+                //debugger;
+                if (docs.length == 1) {
+
+                    sResponseUsr = {
+                        success : {
+                            sellerId : docs[0].id,
+                            sellerName : docs[0].name
+                        }
+                    };
+
+                } else {
+
+                    sResponseUsr = {
+                        error : "No hay vendedores para el punto de venta seleccionado."
+                    };
+                }
+            }     
+
+            resp.send(sResponseUsr);   
+        });
+    } else {
+        
+        sResponseUsr = {
+            error : "Peticion incompleta, intente nuevamente."
+        };
+        
+        resp.send(sResponseUsr);  
+    }
+});
+
+app.post('/orders', function(req, resp){
+    
+    var sResponseUsr = null;
+
+    if (req.body.session !== undefined && req.body.session !== null &&
+            req.body.session !== "") {
+        
+        var aData = req.body.session.split('|');
+
+        var orders = [];
+        var creams = [];
+        var sResponse = null;
+
+        db.collection("Order").find({massage_point : aData[1], status : '1'}).toArray((error, docs) => {
+
+            if (error) {
+                console.log(error);
+                sResponse = {
+                    error : error.message
+                };
+
+            } else {
+                //debugger;
+                if (docs.length > 0) {
+
+                    docs.forEach(function(doc) {
+
+                        var order  = {
+                            order : doc.folio,
+                            name : doc.client_name,
+                            contact : doc.client_contact,
+                            products : {
+                                list : "",
+                                tipo : "textarea"
+                            }
+                            
+                        };
+
+                        doc.products.forEach(function(product) {
+                            //debugger;
+                            var creamName = product.name;
+
+                            if (order.products.list === "") {
+
+                                order.products.list = creamName;
+
+                            } else {
+
+                                order.products.list = order.products.list + ", " 
+                                        + creamName;
+                            }
+                        });
+
+                        orders.push(order);
+                    });
+
+                    sResponse = {
+                        success : {
+                            orders : orders
+                        }
+                    };
+
+                } else {
+
+                    sResponse = {
+                        error : "No existen tipos de crema activos."
+                    };
+                }
+
+                resp.send(sResponse);  
+            }
+        });
+
+    } else {
+            
+        sResponseUsr = {
+            error : "Peticion incompleta, intente nuevamente."
+        };
+        
+        resp.send(sResponseUsr);  
+    }
+});
+
+app.post('/saveOrder', function(req, resp){
+    //debugger;
+    var sResponseUsr = null;
+
+    if (req.body.idSession !== undefined && req.body.idSession !== null &&
+            req.body.idSession !== "") {
+
+        var aData = req.body.idSession.split('|');
+
+        var currentDate = new Date();
+        var date = currentDate.getDate();
+        var month = currentDate.getMonth(); 
+        var year = currentDate.getFullYear();
+
+        var order = {
+            client_name : req.body.clientN,
+            client_contact : req.body.clientC,
+            massage_point : aData[1],
+            user_id : aData[0],
+            folio : Math.floor((Math.random() * 1000000000) + 999999999),
+            status : "1",
+            date : date + "/" + month + "/" + year,
+            products : req.body.products
+        };
+
+        db.collection("Order").save(order, function(err){
+
+            if (err) {
+                console.log(err);
+                sResponseUsr = {
+                    error : err.message
+                };
+
+            } else {
+                sResponseUsr = {
+                    success : "Orden enviada"
+                };
+            }
+
+            resp.send(sResponseUsr);
+
+        });
+        
+    } else {
+        
+        sResponseUsr = {
+            error : "Peticion incompleta, intente nuevamente."
+        };
+        
+        resp.send(sResponseUsr);  
+    }
 });

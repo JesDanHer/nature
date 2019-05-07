@@ -7,6 +7,7 @@
 <link rel="import" href="../../bower_components/login-element/login-element.html" />
 <link rel="import" href="../../bower_components/polymer/lib/elements/dom-repeat.html" />
 <link rel="import" href="../../bower_components/my-first-comp/my-first-comp.html" />
+<link rel="import" href="../../bower_components/ventas-tabla/ventas-tabla.html" />
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html" />
 
 <dom-module id="nature-app">
@@ -23,6 +24,51 @@
 
       h2 {
           text-align : center;
+      }
+
+      table.myTable {
+        text-align: center;
+      }
+
+      table.myTable td, table.myTable th {
+        border: 1px solid #1d7e1a;
+        padding: 1em 0.5em;
+        font-family: Verdana, Geneva, Tahoma, sans-serif;
+      }
+
+      table.myTable tbody td {
+        font-size: 1em;
+        font-family: Verdana, Geneva, Tahoma, sans-serif;
+      }
+
+      input{
+        margin-bottom: 0.5em;
+        float: right;
+      }
+
+      paper-checkbox.blue {
+      --paper-checkbox-checked-color: var(--paper-blue-500);
+      --paper-checkbox-unchecked-color: var(--paper-blue-900);
+      --paper-checkbox-label-checked-color: var(--paper-blue-900);
+       }
+
+       paper-button.indigo {
+        background-color: var(--paper-indigo-500);
+        color: white;
+      }
+
+      paper-button.green {
+        background-color: var(--paper-green-500);
+        color: white;
+       }
+
+      .button-container {
+        margin-top: 2em;
+        text-align: center;
+      }
+
+      .checkbox-week {
+        float: left;
       }
 
     </style>
@@ -54,7 +100,14 @@
         </div>
 
         <div data-route="salePoint">
-            <p>Sale Point</p>
+            
+            <p>[[titSale]]</p>
+            <span>[[sallerName]]</span>
+
+            <ventas-tabla column-list={{saleHeaders}} products-list={{ordersProducts}}
+                week-list={{weekList}}>
+            </ventas-tabla>
+
         </div>
 
         <div data-route="massagePoint">
@@ -63,33 +116,63 @@
 
             <iron-form>
               
-              <paper-input type="text" name="name" label="Nombre" value="Clienta" required></paper-input>
-              <paper-input type="text" name="contact" label="Contacto" value="E-mail" required></paper-input>
+              <paper-input type="text" id="name" label="Nombre" value="" required></paper-input>
+              <paper-input type="text" id="contact" label="Contacto" value="" required></paper-input>
 
               <paper-dropdown-menu label="Selecciona tu nombre" vertical-align="bottom" horizontal-align="left">
 
                 <paper-listbox slot="dropdown-content" class="dropdown-content">
-                  <!-- dom-repeat-->
-                    <!-- dom-if (valida id del usuario que realizo login y dejarlo predeterminado)-->
+                  
                   <dom-repeat items="{{therapists}}">
                     <template>
                       <paper-item data-id="{{item.id}}">{{item.name}}</paper-item>
                     </template>
                   </dom-repeat>
+
                 </paper-listbox>
 
               </paper-dropdown-menu>
 
               <div class="vertical-section-container centered">
-                  <my-first-comp column-list={{productHeaders}} products-list={{creamProducts}}
-                      week-list={{weekList}}>
-                  </my-first-comp>
-              </div>
-
-            <!-- tabla con las cremas -->
-              <div class="button-container">
-                <paper-button raised class="indigo">ENVIAR</paper-button>
-                <paper-button raised class="green">IMPRIMIR</paper-button>
+                  <table class="myTable">
+                      <thead>
+                        <tr>
+                          <template is="dom-repeat" items="{{productHeaders}}" as="column">     
+                            <template is="dom-if" if="{{isType(column.tipo, 'input')}}">
+                              <td><input>{{column.colName}}</input></td>
+                            </template>
+                            <template is="dom-if" if="{{isType(column.tipo, 'td')}}">
+                              <td>{{column.colName}}</td>
+                            </template>
+                            <template is="dom-if" if="{{isType(column.tipo, 'button')}}">
+                              <td><button>{{column.colName}}</button></td>
+                            </template>
+                          </template>
+                        </tr>
+                      </thead>
+                
+                      <template is="dom-repeat" items="{{creamProducts}}" as="product">     
+                        <tbody>
+                          <tr>       
+                            
+                            <iron-selector selected-attribute="checked" attr-for-selected="name">
+                            <td> <paper-checkbox name={{product.name}}></paper-checkbox></td>
+                            <td>{{product.tipo}}</td>
+                            <td>{{product.name}}</td>  
+                            <template is="dom-if" if="{{product.week}}">
+                              <template is="dom-repeat" items="{{weekList}}" as="week">
+                                <td>{{week.day}}<paper-checkbox class="checkbox-week" name={{week.day}}></paper-checkbox></td>      
+                              </template>
+                            </template>   
+                          </iron-selector>     
+                          </tr>
+                        </tbody>
+                      </template>
+                    </table>
+                    <div class="button-container">
+                      <paper-button on-click="buildProductObject" raised class="indigo">ENVIAR</paper-button>
+                      <paper-button raised class="green">IMPRIMIR</paper-button>
+                    </div>
               </div>
 
             </iron-form>
@@ -163,10 +246,39 @@
               },creamProducts : {
                 type : Array,
                 value : new Array()
+              }, titSale : {
+                type : String,
+                value : ''
+              }, sallerName : {
+                type : String,
+                value : ''
+              },saleHeaders : {
+                type : Array,
+                value : [
+                  {"colName": "Orden", "tipo": "td", "type": "Boolean"},
+                  {"colName": "Nombre", "tipo": "td", "type": "Boolean"},
+                  {"colName": "Contacto", "tipo": "td", "type": "Boolean"},
+                  {"colName": "Productos", "tipo": "td", "type": "Boolean"},
+                  {"colName": "Revisado", "tipo": "td", "type": "Boolean"}]
+              },ordersProducts : {
+                type : Array,
+                value : new Array()
+              },sendOrder : {
+                type : Object,
+                value : {
+                  idSession : '',
+                  clientN : '',
+                  clientC : '',
+                  products : []
+                }
               }
           };
 
       }
+
+      isType(tipo, valor){
+        return (tipo === valor);
+      } 
 
       genericResponse(resp) {
         
@@ -176,10 +288,24 @@
           if (dataResp.sesionId !== undefined && dataResp.sesionId !== null &&
               dataResp.sesionId !== "") {
             
-            this.view = dataResp.view;
-            this.getMassagePoint(dataResp.sesionId);
-            this.getTherapists(dataResp.sesionId);
-            this.getCreams();
+            this.sendOrder.idSession = dataResp.sesionId;
+
+            if (dataResp.view === 'massagePoint') {
+
+              this.view = dataResp.view;
+
+              this.getMassagePoint(dataResp.sesionId);
+              this.getTherapists(dataResp.sesionId);
+              this.getCreams();
+
+            } else if (dataResp.view === 'salePoint') {
+
+              this.view = dataResp.view;
+              this.getSalePoint(dataResp.sesionId);
+              this.getSellers(dataResp.sesionId);
+              this.getOrders(dataResp.sesionId);
+
+            }
 
           } else if (dataResp.pointName !== undefined && dataResp.pointName !== null &&
               dataResp.pointName !== ""){
@@ -195,6 +321,26 @@
               dataResp.creams !== "" && dataResp.creams.length > 0) {
             
                 this.creamProducts = dataResp.creams;
+
+          } else if (dataResp.saleName !== undefined && dataResp.saleName !== null &&
+              dataResp.saleName !== ""){
+
+            this.titSale = dataResp.saleName;
+            
+          } else if (dataResp.sellerName !== undefined && dataResp.sellerName !== null &&
+              dataResp.sellerName !== ""){
+
+            this.sallerName = dataResp.sellerName;
+            
+          } else if (dataResp.orders !== undefined && dataResp.orders !== null &&
+              dataResp.orders !== "" && dataResp.orders.length > 0){
+
+            this.ordersProducts = dataResp.orders;
+
+            setTimeout(function() {
+              this.getOrders(this.sendOrder.idSession);
+            }.bind(this), 60000);
+            
           }
         }
       }
@@ -241,12 +387,119 @@
         this.$.iaIdAjaxRequest.generateRequest();
       }
 
+      getSalePoint(param) {
+        
+        if (param !== undefined && param !== null && param !== "") {
+
+          this.urlReq = this.urlPath  + "salePoint";
+          this.methodReq = "post";
+          this.bodyReq = {session : param};
+          
+          this.$.iaIdAjaxRequest.generateRequest();
+        }
+      }
+      
+      getSellers(param) {
+        
+        if (param !== undefined && param !== null && param !== "") {
+
+          this.urlReq = this.urlPath  + "sellers";
+          this.methodReq = "post";
+          this.bodyReq = {session : param};
+          
+          this.$.iaIdAjaxRequest.generateRequest();
+        }
+      }
+
+      getOrders(param) {
+        
+        if (param !== undefined && param !== null && param !== "") {
+
+          this.urlReq = this.urlPath  + "orders";
+          this.methodReq = "post";
+          this.bodyReq = {session : param};
+          
+          this.$.iaIdAjaxRequest.generateRequest();
+        }
+      }
+
+      buildProductObject(){
+
+        this.sendOrder.clientN = this.$.name.value;
+        this.sendOrder.clientC = this.$.contact.value;
+        this.sendOrder.products = [];
+
+        let checkboxes = this.shadowRoot.querySelectorAll('paper-checkbox');
+        
+        for(let i = 0; checkboxes.length > i; i++){
+
+          if (checkboxes[i].checked  == true){
+
+            var order = {
+              name : "",
+              day : "0",
+              nigth : "0",
+              days : ""
+            }
+
+            if (isDayOfWeek(checkboxes[i + 1].name)) {
+              
+              order.name = checkboxes[i].name;
+              var isWeekDay = true;
+              i = i + 1;
+
+              while (isWeekDay && i < checkboxes.length) {
+
+                if (isDayOfWeek(checkboxes[i].name)) {
+
+                  if (checkboxes[i].checked  == true) {
+
+                    if (order.days === "") {
+
+                      order.days = checkboxes[i].name;
+
+                    } else {
+
+                      order.days = order.days + "-" + checkboxes[i].name;
+                    }
+                  }
+                  
+                  i = i + 1;
+
+                } else {
+
+                  isWeekDay = false;
+                }                
+              }
+            } else {
+              
+              order.name = checkboxes[i].name;
+            }
+
+            this.sendOrder.products.push(order);
+          }
+        }
+        console.log(this.sendOrder);
+        this.urlReq = this.urlPath  + "saveOrder";
+        this.methodReq = "post";
+        this.bodyReq = this.sendOrder;
+        
+        this.$.iaIdAjaxRequest.generateRequest();
+      }
+
     }
 
     window.customElements.define(NatureApp.is, NatureApp);
 
     function validateNotEmpty(data) {
       return (data !== undefined && data !== null && data !== "");
+    }
+
+    function isDayOfWeek(attrName) {
+      return (attrName === 'Lun/Mon' || attrName === 'Mar/Tue' ||
+          attrName === 'Mie/Wen' || attrName === 'Jue/Thu' ||
+          attrName === 'Vie/Fri' || attrName === 'Sab/Sat' ||
+          attrName === 'Dom/Sun')
     }
 
     function validateErrorResponse(data) {

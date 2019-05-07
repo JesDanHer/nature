@@ -11,7 +11,8 @@
     "paper-listbox": "https://github.com/PolymerElements/paper-listbox.git#2.1.1",
     "paper-item": "https://github.com/PolymerElements/paper-item.git#2.1.1",
     "table-playground": "https://github.com/Copelia/table-playground",
-    "my-first-comp": "https://github.com/Copelia/table-playground.git#^0.0.3"
+    "my-first-comp": "https://github.com/Copelia/table-playground.git#master",
+    "ventas-tabla": "https://github.com/Copelia/ventas-tabla.git"
   },
   "devDependencies": {
     "web-component-tester": "Polymer/web-component-tester#^6.0.0",
