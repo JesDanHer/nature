@@ -8,6 +8,9 @@
 <link rel="import" href="../../bower_components/polymer/lib/elements/dom-repeat.html" />
 <link rel="import" href="../../bower_components/my-first-comp/my-first-comp.html" />
 <link rel="import" href="../../bower_components/ventas-tabla/ventas-tabla.html" />
+<link rel="import" href="../../bower_components/week-box/week-box.html" />
+<link rel="import" href="../../bower_components/combo-box/combo-box.html" />
+<link rel="import" href="../../bower_components/iron-icon/iron-icon.html" />
 <link rel="import" href="../../bower_components/iron-ajax/iron-ajax.html" />
 
 <dom-module id="nature-app">
@@ -71,6 +74,28 @@
         float: left;
       }
 
+      .clsLista {
+        list-style:none;
+      }
+      .clsListaItem {
+        display:inline-block;
+        padding-left: 20px;
+        width:100px;
+      }
+      .dContent {
+        width: 100%;
+      }
+      .dItem {
+        display: inline-block;
+      }
+      .polymer-checkbox{
+        vertical-align: super;
+        display: inline-block;
+      }
+      .combo-box{
+        padding-left: 0 !important;
+      }
+
     </style>
 
     <h2>[[title]]</h2>
@@ -118,9 +143,9 @@
               
               <paper-input type="text" id="name" label="Nombre" value="" required></paper-input>
               <paper-input type="text" id="contact" label="Contacto" value="" required></paper-input>
-
+              <!--
               <paper-dropdown-menu label="Selecciona tu nombre" vertical-align="bottom" horizontal-align="left">
-
+                
                 <paper-listbox slot="dropdown-content" class="dropdown-content">
                   
                   <dom-repeat items="{{therapists}}">
@@ -132,48 +157,65 @@
                 </paper-listbox>
 
               </paper-dropdown-menu>
+              -->
+              <template is="dom-repeat" items="{{creamProducts}}" as="item">     
+                <div class="clsTitle">
+                 <h3>{{item.title}}</h3>
+                </div>
+                <!-- DOM IF (Lista vacia)-->
+                <template is="dom-if" if="{{item.listSubtitle.length == 0}}">
+                  
+                  <ul class="clsLista">
+                    
+                    <template is="dom-repeat" items="{{item.creams}}" as="cream">
+                        
+                      <li class="clsListaItem">
+                        <combo-box></combo-box>
+                        <br/>
+                        <span class="infoItem">{{cream.nombre}}</span> 
+                      </li>
+                    </template>  
 
-              <div class="vertical-section-container centered">
-                  <table class="myTable">
-                      <thead>
-                        <tr>
-                          <template is="dom-repeat" items="{{productHeaders}}" as="column">     
-                            <template is="dom-if" if="{{isType(column.tipo, 'input')}}">
-                              <td><input>{{column.colName}}</input></td>
-                            </template>
-                            <template is="dom-if" if="{{isType(column.tipo, 'td')}}">
-                              <td>{{column.colName}}</td>
-                            </template>
-                            <template is="dom-if" if="{{isType(column.tipo, 'button')}}">
-                              <td><button>{{column.colName}}</button></td>
-                            </template>
-                          </template>
-                        </tr>
-                      </thead>
+                  </ul>
+               
+                  <template is="dom-if" if="{{item.week}}">
+                    <week-box></week-box>
+                  </template>
+              
+                </template>
                 
-                      <template is="dom-repeat" items="{{creamProducts}}" as="product">     
-                        <tbody>
-                          <tr>       
-                            
-                            <iron-selector selected-attribute="checked" attr-for-selected="name">
-                            <td> <paper-checkbox name={{product.name}}></paper-checkbox></td>
-                            <td>{{product.tipo}}</td>
-                            <td>{{product.name}}</td>  
-                            <template is="dom-if" if="{{product.week}}">
-                              <template is="dom-repeat" items="{{weekList}}" as="week">
-                                <td>{{week.day}}<paper-checkbox class="checkbox-week" name={{week.day}}></paper-checkbox></td>      
-                              </template>
-                            </template>   
-                          </iron-selector>     
-                          </tr>
-                        </tbody>
-                      </template>
-                    </table>
-                    <div class="button-container">
-                      <paper-button on-click="buildProductObject" raised class="indigo">ENVIAR</paper-button>
-                      <paper-button raised class="green">IMPRIMIR</paper-button>
-                    </div>
-              </div>
+               <!--  DOM IF (Algo en la lista) -->
+               <template is="dom-if" if="{{item.listSubtitle.length > 0}}">
+                 
+                <template is="dom-repeat" items="{{item.listSubtitle}}" as="subtitle">
+                  
+                  <h4>{{subtitle.title}}</h4>
+                  
+                  <ul class="clsLista">
+                    
+                    <template is="dom-repeat" items="{{subtitle.creams}}" as="cream">
+                      
+                      <li class="clsListaItem">
+                        
+                        <combo-box></combo-box>
+                        <br/>
+                        <span class="infoItem">{{cream.nombre}}</span> 
+                      
+                      </li>
+                    
+                    </template>
+                    
+                    <template is="dom-if" if="{{subtitle.week}}">
+                      <week-box></week-box>
+                    </template>
+
+                  </ul>
+                
+                </template>
+
+              </template>
+
+            </template>
 
             </iron-form>
 

@@ -12,7 +12,9 @@
     "paper-item": "https://github.com/PolymerElements/paper-item.git#2.1.1",
     "table-playground": "https://github.com/Copelia/table-playground",
     "my-first-comp": "https://github.com/Copelia/table-playground.git#master",
-    "ventas-tabla": "https://github.com/Copelia/ventas-tabla.git"
+    "ventas-tabla": "https://github.com/Copelia/ventas-tabla.git",
+    "week-box": "https://github.com/Copelia/week-box.git",
+    "combo-box": "https://github.com/Copelia/combo-box.git#^0.0.1"
   },
   "devDependencies": {
     "web-component-tester": "Polymer/web-component-tester#^6.0.0",

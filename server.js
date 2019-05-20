@@ -206,6 +206,7 @@ app.post('/massagePoint', function(req, resp){
 app.get('/creams', function(req, resp){
     //resp.send('this is a GET');
     var creamTypes = [];
+    var creamSubTypes = [];
     var creams = [];
     var sResponse = null;
 
@@ -223,74 +224,103 @@ app.get('/creams', function(req, resp){
 
                 creamTypes = docs;
 
-                db.collection("Cream").find({status : "1"}).toArray((errorCream, docsCream) => {
+                db.collection("SubTypeCream").find({status : "1"}).toArray((errorSub, docsSub) => {
 
-                    if (errorCream) {
-                        console.log(errorCream);
+                    if (errorSub) {
+                        console.log(errorSub);
                         sResponse = {
-                            error : errorCream.message
+                            error : errorSub.message
                         };
             
                     } else {
-                        //debugger;
-                        if (docsCream.length > 0) {
-            
-                            creams = docsCream;
-                            
-                            var creamsResp = [];
 
-                            creams.forEach(function(cream) {
+                        creamSubTypes = docsSub;
+
+                        db.collection("Cream").find({status : "1"}).toArray((errorCream, docsCream) => {
+
+                            if (errorCream) {
+                                //console.log(errorCream);
+                                sResponse = {
+                                    error : errorCream.message
+                                };
+                    
+                            } else {
                                 //debugger;
-                                /*var creamTmp = {
-                                    id : '',
-                                    name : '',
-                                    tipo : '',
-                                    subType : '',
-                                    week : false
-                                }*/
-                                var creamTmp = {
-                                    name : '',
-                                    tipo : '',
-                                    week : false
-                                }
-                                
-                                creamTmp.name = cream.name;
+                                if (docsCream.length > 0) {
+                    
+                                    creams = docsCream;
+                                    
+                                    var creamsResp = [];
+        
+                                    creamTypes.forEach(function(type) {
+                                        //debugger;
+                                        var creamTmp = {
+                                            title : type.name,
+                                            week : type.daysWeek === "1" || type.daysWeek === 1,
+                                            listSubtitle : [],
+                                            creams : []
+                                        }
 
-                                var foundType = false;
-                                var iRecTypes = 0;
-                                while (!foundType && iRecTypes < creamTypes.length) {
+                                        if (type.subtypes === 1 || type.subtypes === "1") {
 
-                                    if (creamTypes[iRecTypes].id === cream.id_creamType) {
+                                            creamSubTypes.forEach(function(subType) {
+                                                //debugger;
+                                                if (subType.idType === type.id) {
 
-                                        foundType = true;
-                                        creamTmp.week = creamTypes[iRecTypes].daysWeek === "1" ? true : false;
-                                        creamTmp.tipo = creamTypes[iRecTypes].name;
+                                                    var subCreamTmp = {
+                                                        title : subType.name,
+                                                        week : subType.daysWeek === "1" || subType.daysWeek === 1,
+                                                        creams : []
+                                                    }
 
-                                    } else {
-                                        
-                                        iRecTypes = iRecTypes + 1;
-                                    }
-                                }
+                                                    creams.forEach(function(cream) {
+                                                        //debugger;
+                                                        if (cream.id_creamType === type.id &&
+                                                                cream.id_subType === subType.id) {
+                                                        
+                                                            subCreamTmp.creams.push(cream.name);
+                                                        }
+                                                    });
 
-                                creamsResp.push(creamTmp);
+                                                    creamTmp.listSubtitle.push(subCreamTmp);
+                                                }
+                                            });
+                                            
+                                        } else {
 
-                            });
-                            sResponse = {
-                                success : {
-                                    creams : creamsResp
-                                }
-                            };
+                                            creams.forEach(function(cream) {
+                                                //debugger;
+                                                if (cream.id_creamType === type.id) {
+
+                                                    creamTmp.creams.push(cream.name);
+                                                }
+
+                                            });
+                                        }
             
-                        } else {
-            
-                            sResponse = {
-                                error : "No existen cremas activas."
-                            };
-                        }
-                    }          
+                                        creamsResp.push(creamTmp);
+        
+                                    });
+                                    sResponse = {
+                                        success : {
+                                            creams : creamsResp
+                                        }
+                                    };
+                    
+                                } else {
+                    
+                                    sResponse = {
+                                        error : "No existen cremas activas."
+                                    };
+                                }
+                            }          
+        
+                            resp.send(sResponse);   
+                    
+                        });
 
-                    resp.send(sResponse);   
-            
+                    }
+
                 });
 
             } else {
